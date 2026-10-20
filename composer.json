@@ -1,0 +1,57 @@
+{
+    "name": "kntnt/kntnt-unlink-unpublished",
+    "description": "WordPress plugin that renders links to unpublished pages as plain text at render time, without changing stored content.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Kntnt",
+            "email": "thomas@kntnt.com",
+            "homepage": "https://www.kntnt.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "brain/monkey": "^2.6",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "johnpbloch/wordpress-core": "6.9.*",
+        "mockery/mockery": "^1.6",
+        "pestphp/pest": "^3.0",
+        "phpstan/phpstan": "^2.0",
+        "squizlabs/php_codesniffer": "^3.9",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-coding-standards/wpcs": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kntnt\\Unlink_Unpublished\\": "classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        },
+        "files": [
+            "tests/Helpers/WpStubs.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "test": "pest --testsuite=Unit",
+        "stan": "phpstan analyse --configuration=phpstan.neon.dist --memory-limit=1G",
+        "phpcs": "phpcs --standard=phpcs.xml.dist",
+        "phpcbf": "phpcbf --standard=phpcs.xml.dist",
+        "build": "bash build-release-zip.sh --output ."
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

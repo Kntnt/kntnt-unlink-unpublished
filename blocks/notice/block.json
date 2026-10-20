@@ -1,0 +1,22 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "kntnt-unlink-unpublished/notice",
+	"title": "Unavailable page notice",
+	"category": "theme",
+	"icon": "info-outline",
+	"description": "Shows its content only on the address of an unpublished or deleted page. Place it in the 404 template.",
+	"keywords": [ "404", "unpublished", "deleted" ],
+	"textdomain": "kntnt-unlink-unpublished",
+	"attributes": {
+		"when": {
+			"type": "string",
+			"enum": [ "unpublished", "deleted", "both" ],
+			"default": "both"
+		}
+	},
+	"supports": {
+		"html": false
+	},
+	"editorScript": "file:./index.js"
+}

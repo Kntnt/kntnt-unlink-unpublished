@@ -1,0 +1,35 @@
+{
+    "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+    "preferredVersions": {
+        "php": "8.4",
+        "wp": "latest"
+    },
+    "steps": [
+        {
+            "step": "installPlugin",
+            "pluginData": {
+                "resource": "wordpress.org/plugins",
+                "slug": "polylang"
+            },
+            "options": {
+                "activate": true
+            }
+        },
+        {
+            "step": "activatePlugin",
+            "pluginPath": "kntnt-unlink-unpublished/kntnt-unlink-unpublished.php"
+        },
+        {
+            "step": "runPHP",
+            "code": "<?php require '/wordpress/wp-content/plugins/kntnt-unlink-unpublished/tests/Integration/polylang-languages.php';"
+        },
+        {
+            "step": "runPHP",
+            "code": "<?php require '/wordpress/wp-content/plugins/kntnt-unlink-unpublished/tests/Integration/polylang-seed.php';"
+        },
+        {
+            "step": "runPHP",
+            "code": "<?php require '/wordpress/wp-content/plugins/kntnt-unlink-unpublished/tests/Integration/polylang-unpublish.php';"
+        }
+    ]
+}

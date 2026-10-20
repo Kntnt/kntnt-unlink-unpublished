@@ -1,0 +1,9 @@
+{
+    "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+    "preferredVersions": { "php": "8.4", "wp": "latest" },
+    "steps": [
+        { "step": "installPlugin", "pluginData": { "resource": "wordpress.org/plugins", "slug": "bogo" }, "options": { "activate": true } },
+        { "step": "activatePlugin", "pluginPath": "kntnt-unlink-unpublished/kntnt-unlink-unpublished.php" },
+        { "step": "runPHP", "code": "<?php require '/wordpress/wp-content/plugins/kntnt-unlink-unpublished/tests/Integration/bogo-seed.php';" }
+    ]
+}

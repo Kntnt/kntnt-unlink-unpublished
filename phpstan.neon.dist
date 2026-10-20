@@ -1,0 +1,12 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: max
+    paths:
+        - classes/
+        - kntnt-unlink-unpublished.php
+        - install.php
+        - uninstall.php
+    phpVersion: 80400
+    treatPhpDocTypesAsCertain: false

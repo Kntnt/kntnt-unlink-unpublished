@@ -1,0 +1,8 @@
+{
+    "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+    "preferredVersions": { "php": "8.4", "wp": "latest" },
+    "steps": [
+        { "step": "activatePlugin", "pluginPath": "kntnt-unlink-unpublished/kntnt-unlink-unpublished.php" },
+        { "step": "runPHP", "code": "<?php require '/wordpress/wp-load.php'; if ( ! is_plugin_active( 'kntnt-unlink-unpublished/kntnt-unlink-unpublished.php' ) ) { throw new Exception( 'Plugin did not activate.' ); } if ( ! class_exists( 'Kntnt\\\\Unlink_Unpublished\\\\Plugin' ) ) { throw new Exception( 'Plugin classes did not load.' ); } echo 'BOOT-OK ' . PHP_VERSION . ' WP ' . get_bloginfo( 'version' );" }
+    ]
+}

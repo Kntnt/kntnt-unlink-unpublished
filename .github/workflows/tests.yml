@@ -1,0 +1,111 @@
+name: Tests
+
+# Run the full gate on every push and pull request targeting main.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+
+  lint:
+    name: Lint (PHPCS, WPCS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          coverage: none
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+      - name: Check coding standards
+        run: composer phpcs
+
+  stan:
+    name: Static analysis (PHPStan max)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          coverage: none
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+      - name: Run PHPStan
+        run: composer stan
+
+  unit:
+    name: Unit tests (Pest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          coverage: pcov
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+      - name: Run the unit suite with coverage
+        run: vendor/bin/pest --testsuite=Unit --coverage
+
+  e2e:
+    name: Playground (${{ matrix.suite }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: boot
+            run: bash tests/Integration/playground-smoke.sh
+          - suite: rendering on latest WordPress
+            run: python3 tests/Integration/playground-rendering.py
+          - suite: rendering on WordPress 6.9
+            run: KNTNT_RENDERING_WP=6.9 python3 tests/Integration/playground-rendering.py
+          - suite: Bogo
+            run: python3 tests/Integration/playground-bogo.py
+          - suite: Polylang
+            run: python3 tests/Integration/playground-polylang.py
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Run the suite
+        run: ${{ matrix.run }}
