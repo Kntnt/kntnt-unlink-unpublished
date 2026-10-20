@@ -70,6 +70,17 @@ The state of a request for an unpublished or deleted page reaches the theme in t
 - **Body classes** – `kntnt-unlink-unpublished-unpublished` or `kntnt-unlink-unpublished-deleted`.
 - **The block `kntnt-unlink-unpublished/notice`** – a container whose inner blocks render only when the request state matches its `when` attribute (`unpublished`, `deleted` or `both`). Place it in a block theme's 404 template to say "This page is temporarily unavailable" without code.
 
+## Redirect plugins
+
+A redirect on a 404 to a target that isn't live is vetoed, and the request is answered with its own 404 or 410 – the theme's 404 template, the request state, the body class and the notice block included. The plugin judges where a redirect goes, not who issued it, so redirect plugins need no adapter (docs/adr/0011).
+
+- **Vetoed:** a redirect through `wp_redirect()` or `wp_safe_redirect()`, issued while answering a front-end 404, to a same-site URL of a target that isn't live for the visitor – its would-be permalink, its last public URL, a tombstone URL or an ID form. Core's old-slug redirect is stopped the same way, through `old_slug_redirect_post_id`.
+- **Still wins:** a redirect to a live page, the home page or another site, and any redirect on a request that isn't a 404, such as a published page's own redirect rule. A redirect sent with a raw `header( 'Location: …' )`, or issued before the main query is parsed, is not seen.
+
+The known case is Slim SEO's **Automatic redirection**, which is on by default. It records a page's old permalink whenever the page's slug changes – moving a page to the trash changes it – and on a 404 at that address sends the visitor to the page's current permalink, which for a page that isn't published is its ID form. Without the veto, a page that has been in the trash once answers 301 to a 404 every time it is unpublished, and a draft's ID form redirects to itself.
+
+With `WP_DEBUG` and `WP_DEBUG_LOG` on, each veto writes one line to the debug log with the request URI, the location and the status code. Nothing is stored and nothing is reported in Site Health.
+
 ## Drop markers
 
 An element carrying the class `kntnt-unlink-unpublished-drop` is dropped with everything in it when a link inside it isn't live. Editors set it with the rich-text format **Hide if link target is unpublished** or the block toggle **Hide block if link target is unpublished**; a theme or a pattern can also write the class directly – on a block under Advanced → Additional CSS class(es), or on any element in classic content.

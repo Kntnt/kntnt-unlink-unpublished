@@ -57,6 +57,12 @@ wp_untrash_post( $ids['restored'] );
 wp_trash_post( $ids['purge-d'] );
 wp_delete_post( $ids['gone'], true );
 
+// A post renamed while published and then unpublished: core keeps its old
+// slug and redirects it.
+$ids['renamed'] = (int) wp_insert_post( [ 'post_type' => 'post', 'post_status' => 'publish', 'post_name' => 'old-slug-post', 'post_title' => 'Renamed post', 'post_content' => '' ] );
+wp_update_post( [ 'ID' => $ids['renamed'], 'post_name' => 'new-slug-post' ] );
+wp_update_post( [ 'ID' => $ids['renamed'], 'post_status' => 'draft' ] );
+
 // Targets that were never public, a password-protected page, a published page
 // whose slug would attract the guess redirect, and a trashed parent.
 $ids['future'] = kntnt_test_page( 'future-page', 'future', [ 'post_date' => gmdate( 'Y-m-d H:i:s', time() + WEEK_IN_SECONDS ) ] );
@@ -158,6 +164,20 @@ wp_set_object_terms( $ids['purge-part'], get_stylesheet(), 'wp_theme' );
 $notice = static fn( string $when, string $text ): string => '<!-- wp:kntnt-unlink-unpublished/notice {"when":"' . $when . '"} --><div class="wp-block-kntnt-unlink-unpublished-notice"><!-- wp:paragraph --><p>' . $text . '</p><!-- /wp:paragraph --></div><!-- /wp:kntnt-unlink-unpublished/notice -->';
 $template = (int) wp_insert_post( [ 'post_type' => 'wp_template', 'post_status' => 'publish', 'post_name' => '404', 'post_title' => '404', 'post_content' => $notice( 'unpublished', 'NOTICE-UNPUBLISHED' ) . $notice( 'deleted', 'NOTICE-DELETED' ) . '<!-- wp:paragraph --><p>PLAIN-404</p><!-- /wp:paragraph -->' ] );
 wp_set_object_terms( $template, get_stylesheet(), 'wp_theme' );
+
+// A classic theme whose 404 template reads the query the way WordPress's own
+// template loader lets it: without declaring it global.
+$classic = WP_CONTENT_DIR . '/themes/kntnt-classic-fixture';
+wp_mkdir_p( $classic );
+file_put_contents( $classic . '/style.css', "/*\nTheme Name: Kntnt classic fixture\n*/\n" );
+file_put_contents( $classic . '/index.php', "<?php\necho 'CLASSIC-INDEX';\n" );
+file_put_contents(
+	$classic . '/404.php',
+	<<<'PHP'
+	<?php
+	echo '<!DOCTYPE html><html><body class="' . esc_attr( implode( ' ', get_body_class() ) ) . '">CLASSIC-404 ' . ( $wp_query->is_404() ? 'IS-404' : 'NOT-404' ) . '</body></html>';
+	PHP,
+);
 
 // Targets the activation seeding should and should not pick up, written
 // straight to the database as on a site that unpublished them by hand.

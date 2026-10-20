@@ -56,3 +56,9 @@ _Avoid_: remove, delete
 **Drop marker**:
 An editor's mark on a sentence or a block saying that it exists only for its links, so that it is dropped with everything in it when a link inside it isn't live.
 _Avoid_: remove marker, remove span, reference text
+
+### What happens to a redirect to a target that isn't live
+
+**Veto**:
+Refuse a redirect whose target isn't live, so that the address answers with its own 404 or 410 instead.
+_Avoid_: block, cancel, drop

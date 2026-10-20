@@ -101,6 +101,8 @@ jobs:
             run: python3 tests/Integration/playground-bogo.py
           - suite: Polylang
             run: python3 tests/Integration/playground-polylang.py
+          - suite: Slim SEO
+            run: python3 tests/Integration/playground-slim-seo.py
     steps:
       - uses: actions/checkout@v5
       - name: Set up Node.js

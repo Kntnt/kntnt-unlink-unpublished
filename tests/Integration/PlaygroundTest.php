@@ -19,6 +19,7 @@ dataset('playground drivers', [
     'rendering' => ['python3', 'playground-rendering.py'],
     'bogo' => ['python3', 'playground-bogo.py'],
     'polylang' => ['python3', 'playground-polylang.py'],
+    'slim seo' => ['python3', 'playground-slim-seo.py'],
 ]);
 
 it('passes in WordPress Playground on PHP 8.4', function (string $runner, string $script): void {

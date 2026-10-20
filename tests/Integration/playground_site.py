@@ -37,10 +37,10 @@ def opener(jar=None):
     return urllib.request.build_opener(*handlers)
 
 
-def request(base, path, client=None):
+def request(base, path, client=None, method="GET"):
     """Return the real status, headers and body, including HTTP errors."""
     try:
-        response = (client or opener()).open(base + path, timeout=60)
+        response = (client or opener()).open(urllib.request.Request(base + path, method=method), timeout=60)
     except urllib.error.HTTPError as error:
         response = error
     with response:

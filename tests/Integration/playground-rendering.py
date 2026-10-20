@@ -3,8 +3,8 @@
 Covers the acceptance criteria of docs/spec.md §13 marked [e2e]: rendering for
 anonymous visitors and administrators, the status matrix, URL forms, element
 rules, drop markers, navigation, classic content, REST and feeds, requests for
-unpublished and deleted URLs, the notice block, purge announcements, Site
-Health, the editor stylesheet and activation seeding.
+unpublished and deleted URLs, redirects to them, the notice block, purge
+announcements, Site Health, the editor stylesheet and activation seeding.
 
 Usage: python3 tests/Integration/playground-rendering.py
 KNTNT_RENDERING_PORT selects the local port (default 9431).
@@ -112,6 +112,44 @@ def probe(base):
     check("pre-trash path of a published child answers 404 without a guess redirect", status == 404 and headers.get("Location") is None)
     status, _, _ = request(base, "/no-such-page/")
     check("an address that never existed answers 404", status == 404)
+
+    # Redirects on a 404 to a target that isn't live are vetoed.
+    status, headers, _ = request(base, "/trash-page/?kntnt_redirect_to=trash&kntnt_without_guard=fixture-only")
+    check("precondition: without the guard a redirecting plugin 301s a trashed page to its ID form", status == 301 and f"page_id={ids['trash']}" in (headers.get("Location") or ""))
+    status, headers, html = request(base, "/draft-page/?kntnt_redirect_to=draft")
+    check("a redirect on a 404 to a draft is vetoed and the 404 template says unpublished", status == 404 and headers.get("Location") is None and "kntnt-unlink-unpublished-unpublished" in body_classes(html) and "NOTICE-UNPUBLISHED" in html and "PLAIN-404" in html)
+    status, headers, html = request(base, "/trash-page/?kntnt_redirect_to=trash")
+    check("a redirect on a 404 to a trashed page is vetoed at its original URL", status == 404 and headers.get("Location") is None and "kntnt-unlink-unpublished-unpublished" in body_classes(html))
+    status, headers, html = request(base, "/gone-page/?kntnt_redirect_to=gone")
+    check("a redirect at a tombstone URL is vetoed with 410", status == 410 and headers.get("Location") is None and "NOTICE-DELETED" in html)
+    status, headers, _ = request(base, f"/?page_id={ids['draft']}&kntnt_redirect_to=draft")
+    check("a redirect from a draft's ID form to itself answers 404 instead of looping", status == 404 and headers.get("Location") is None)
+    for name, location in [("live", base + "/live-page/"), ("home", base + "/"), ("external", "https://example.org/")]:
+        status, headers, _ = request(base, f"/draft-page/?kntnt_redirect_to={name}")
+        check(f"a redirect on a 404 to {location} still answers 301", status == 301 and headers.get("Location") == location)
+    status, headers, _ = request(base, "/live-page/?kntnt_redirect_to=draft&kntnt_redirect_always=1")
+    check("a redirect from a published page to a target that isn't live still answers 301", status == 301 and f"page_id={ids['draft']}" in (headers.get("Location") or ""))
+    status, _, _ = request(base, "/draft-page/?kntnt_redirect_to=draft", admin)
+    check("an administrator's preview is left alone by a plugin that redirects 404s", status == 200)
+    status, headers, body = request(base, "/draft-page/?kntnt_redirect_to=draft", method="HEAD")
+    check("a HEAD request to a vetoed URL answers 404 with no body", status == 404 and headers.get("Location") is None and body == "")
+    _, ordinary, _ = request(base, "/no-such-page/")
+    _, vetoed, _ = request(base, "/draft-page/?kntnt_redirect_to=draft")
+    check("a vetoed 404 includes its template once, as an ordinary 404 does", vetoed.get_all("X-Kntnt-Template") == ordinary.get_all("X-Kntnt-Template") == ["template-canvas.php"])
+    _, ordinary, _ = request(base, "/no-such-page/embed/")
+    _, vetoed, _ = request(base, "/trash-page/embed/?kntnt_redirect_to=trash")
+    check("a vetoed 404 of an embed includes the embed template, as an ordinary one does", ordinary.get_all("X-Kntnt-Template") is not None and vetoed.get_all("X-Kntnt-Template") == ordinary.get_all("X-Kntnt-Template") and vetoed.get("X-Kntnt-Redirect-Attempt") is not None)
+    status, _, html = request(base, "/draft-page/?kntnt_redirect_to=draft&kntnt_classic_theme=1")
+    check("a vetoed 404 renders a classic 404 template in the scope WordPress gives it", status == 404 and "CLASSIC-404 IS-404" in html and "kntnt-unlink-unpublished-unpublished" in body_classes(html))
+
+    # Core's old-slug redirect follows the same rule.
+    status, headers, _ = request(base, "/old-slug-post/?kntnt_without_guard=fixture-only")
+    check("precondition: without the guard core 301s an unpublished post's old slug to its ID form", status == 301 and f"?p={ids['renamed']}" in (headers.get("Location") or ""))
+    status, headers, _ = request(base, "/old-slug-post/")
+    check("an unpublished post's old slug answers 404, not 301, and core never attempts the redirect", status == 404 and headers.get("Location") is None and headers.get("X-Kntnt-Redirect-Attempt") is None)
+    control(base, "publish", page="renamed")
+    status, headers, _ = request(base, "/old-slug-post/")
+    check("once the post is published again, its old slug 301s to the new URL", status == 301 and (headers.get("Location") or "").endswith("/new-slug-post/"))
 
     # A permalink filter the plugin cannot see announces itself through the action.
     check("before the announcement, a link to a URL no target has yet stays a link", linked(anonymous, "CUSTOM-TEXT"))

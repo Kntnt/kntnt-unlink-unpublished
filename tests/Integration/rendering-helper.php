@@ -49,9 +49,58 @@ add_filter(
 	3,
 );
 
-// Lets the driver show what WordPress does without the plugin's guard.
+// Lets the driver show what WordPress does without the plugin's guards.
 if ( ( $_GET['kntnt_without_guard'] ?? '' ) === 'fixture-only' ) {
-	add_action( 'init', static fn() => remove_all_filters( 'do_redirect_guess_404_permalink' ), PHP_INT_MAX );
+	add_action(
+		'init',
+		static function (): void {
+			remove_all_filters( 'do_redirect_guess_404_permalink' );
+			remove_all_filters( 'old_slug_redirect_post_id' );
+			remove_all_filters( 'wp_redirect' );
+		},
+		PHP_INT_MAX,
+	);
+}
+
+// A redirecting plugin, standing in for Slim SEO's automatic redirection: on a
+// 404 it sends the visitor to a fixture page's permalink – for a page that
+// isn't published, its ID form. With kntnt_redirect_always it redirects any
+// request, as a stored redirect rule does.
+add_action(
+	'template_redirect',
+	static function (): void {
+		$name = sanitize_key( (string) ( $_GET['kntnt_redirect_to'] ?? '' ) );
+		if ( $name === '' || ( ! is_404() && ! isset( $_GET['kntnt_redirect_always'] ) ) ) {
+			return;
+		}
+		$ids = get_option( 'kntnt_test_ids', [] );
+		match ( $name ) {
+			'external' => wp_redirect( 'https://example.org/', 301 ),
+			'home' => wp_safe_redirect( home_url( '/' ), 301 ),
+			'gone' => wp_safe_redirect( home_url( '/?page_id=' . $ids['gone'] ), 301 ),
+			default => wp_safe_redirect( (string) get_permalink( $ids[ $name ] ), 301 ),
+		};
+		exit;
+	},
+);
+
+// Tells the driver which redirects were attempted, vetoed or not.
+add_filter(
+	'wp_redirect',
+	static function ( mixed $location ): mixed {
+		header( 'X-Kntnt-Redirect-Attempt: ' . ( is_string( $location ) ? $location : '' ), false );
+		return $location;
+	},
+	1,
+);
+
+// Tells the driver which templates WordPress was about to include.
+add_action( 'wp_before_include_template', static fn( string $template ) => header( 'X-Kntnt-Template: ' . basename( $template ), false ) );
+
+// A classic theme for one request.
+if ( isset( $_GET['kntnt_classic_theme'] ) ) {
+	add_filter( 'pre_option_template', static fn(): string => 'kntnt-classic-fixture' );
+	add_filter( 'pre_option_stylesheet', static fn(): string => 'kntnt-classic-fixture' );
 }
 
 // A second host that serves the same site, added through the hosts filter.

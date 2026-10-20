@@ -119,17 +119,19 @@ run_unit() {
 }
 
 # Level 2: WordPress Playground end-to-end tests – a fast boot smoke test, the
-# rendering suite that drives every behaviour over real HTTP, and the Bogo and
-# Polylang suites with Swedish as the default language and English under /en/.
+# rendering suite that drives every behaviour over real HTTP, the Bogo and
+# Polylang suites with Swedish as the default language and English under /en/,
+# and the Slim SEO suite that walks a page through a trash cycle.
 run_e2e() {
 	echo ""
-	echo "═══ Level 2: Playground e2e (boot smoke + rendering + Bogo + Polylang) ═══"
+	echo "═══ Level 2: Playground e2e (boot smoke + rendering + Bogo + Polylang + Slim SEO) ═══"
 	local args=()
 	[[ "$VERBOSE" == true ]] && args+=(--verbose)
 	if bash "$SCRIPT_DIR/tests/Integration/playground-smoke.sh" "${args[@]}" \
 		&& python3 "$SCRIPT_DIR/tests/Integration/playground-rendering.py" \
 		&& python3 "$SCRIPT_DIR/tests/Integration/playground-bogo.py" \
-		&& python3 "$SCRIPT_DIR/tests/Integration/playground-polylang.py"; then
+		&& python3 "$SCRIPT_DIR/tests/Integration/playground-polylang.py" \
+		&& python3 "$SCRIPT_DIR/tests/Integration/playground-slim-seo.py"; then
 		E2E_EXIT=0
 	else
 		E2E_EXIT=$?

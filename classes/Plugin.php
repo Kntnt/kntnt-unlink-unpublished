@@ -216,11 +216,13 @@ final class Plugin {
 		$tombstones = new Tombstones( $store );
 		$tombstones->register();
 
-		// Links in rendered output and requests for URLs in the index.
+		// Links in rendered output, requests for URLs in the index and redirects
+		// to them. Vetoed redirects reach the debug log only when it is on.
 		$liveness = new Liveness();
 		( new Content_Filter( $store, $liveness, $normaliser, new Link_Rewriter() ) )->register();
 		$this->requests = new Request_Handler( $store, $normaliser );
 		$this->requests->register();
+		( new Redirect_Guard( $store, $liveness, $normaliser, new Not_Found_Page(), logs_vetoes: WP_DEBUG && (bool) WP_DEBUG_LOG ) )->register();
 		( new Notice_Block( $this->requests, dirname( self::$plugin_file ) . '/blocks/notice' ) )->register();
 
 		// Announcements to caches.
