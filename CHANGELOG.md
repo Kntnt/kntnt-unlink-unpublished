@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [0.2.0] – 2026-10-20
+
 ### Added
 
 - Redirects on a 404 to a page that isn't live are vetoed, and the address answers with its own 404 or 410 through the theme's 404 template. This covers Slim SEO's automatic redirection, which sent a page that had been in the trash to its ID form – or a draft's ID form to itself – and WordPress's old-slug redirect for a post renamed while published and later unpublished. With debug logging on, each veto is written to the debug log.

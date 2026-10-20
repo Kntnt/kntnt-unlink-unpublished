@@ -3,7 +3,7 @@
  * Plugin Name:       Kntnt Unlink Unpublished
  * Plugin URI:        https://github.com/Kntnt/kntnt-unlink-unpublished
  * Description:       Renders links to unpublished pages as plain text at render time, and brings them back when the pages are published – without changing stored content.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.9
  * Requires PHP:      8.4
  * Author:            Kntnt
