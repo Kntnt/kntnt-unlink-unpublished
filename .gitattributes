@@ -5,10 +5,9 @@
 *.sh   text eol=lf
 *.php  text eol=lf
 
-# Development-only paths excluded from `git archive` exports. The release zip is
-# built by build-release-zip.sh from such an export of the tag, and strips
-# everything outside its runtime keep-list; these export-ignore rules keep
-# source tarballs clean too.
+# Development-only paths excluded from `git archive` exports, so source
+# tarballs stay clean. The release zip does not depend on them:
+# bin/build-release-assets limits its export to the runtime keep-list.
 /.github            export-ignore
 /docs               export-ignore
 /tests              export-ignore
@@ -19,7 +18,7 @@
 /phpunit.xml        export-ignore
 /patchwork.json     export-ignore
 /run-tests.sh       export-ignore
-/build-release-zip.sh export-ignore
+/bin                export-ignore
 /CLAUDE.md          export-ignore
 /AGENTS.md          export-ignore
 /docs/agents        export-ignore
